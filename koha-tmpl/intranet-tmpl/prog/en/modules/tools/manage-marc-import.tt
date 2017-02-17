@@ -1,3 +1,4 @@
+[% USE Koha %]
 [% INCLUDE 'doc-head-open.inc' %]
 <title>Koha &rsaquo; Tools &rsaquo; Manage staged MARC records
 [% IF ( import_batch_id ) %]
@@ -185,6 +186,13 @@ $(document).ready(function(){
    <div class="dialog message">
      <p>No records have been staged.</p>
      <p><a href="/cgi-bin/koha/tools/stage-marc-import.pl">Stage MARC records for import</a>.</p>
+     [% IF Koha.Preference( 'StageFilterByUser' ) %]
+     <p>
+       [% UNLESS ( no_filter ) %]
+         <a href="[% batch_lis.script_name %]?no_filter=1">Show unfiltered list</a>.
+       [% END %]
+     </p>
+  [% END %]
    </div>
    [% END %]
 [% END %]
@@ -220,6 +228,7 @@ $(document).ready(function(){
 <fieldset class="rows" id="staged-record-matching-rules">
   <ol>
     <li><span class="label">File name:</span> [% file_name %]</li>
+    <li><span class="label">User:</span> [% user_name %]</li>
     <li><span class="label">Comments:</span> [% IF ( comments ) %][% comments %][% ELSE %](none)[% END %]</li>
     <li><span class="label">Type:</span> [% IF ( record_type == 'auth' ) %]Authority records[% ELSE %]Bibliographic records[% END %]</li>
     <li><span class="label">Staged:</span> [% upload_timestamp %]</li>
@@ -384,6 +393,15 @@ $(document).ready(function(){
 <br style="clear:both;" />
 
 [% IF ( batch_list ) %]
+  [% IF Koha.Preference( 'StageFilterByUser' ) %]
+    <p>
+    [% IF ( no_filter ) %]
+      <a href="[% batch_lis.script_name %]?no_filter=0">Filter by logged in user</a>
+    [% ELSE %]
+      <a href="[% batch_lis.script_name %]?no_filter=1">Do not filter list</a>
+    [% END %]
+    </p>
+  [% END %]
   [% IF ( pages ) %]
 <div class="pages">
 Page 
@@ -400,6 +418,7 @@ Page
   <tr>
     <th>#</th>
     <th>File name</th>
+    <th>User</th>
     <th>Comments</th>
     <th>Type</th>
     <th>Status</th>
@@ -412,6 +431,7 @@ Page
     <tr>
     <td>[% batch_lis.import_batch_id %]</td>
     <td><a href="[% batch_lis.script_name %]?import_batch_id=[% batch_lis.import_batch_id %]">[% batch_lis.file_name %]</a></td>
+    <td>[% batch_lis.user_name %]</td>
     <td>[% batch_lis.comments %]</td>
     <td>[% IF ( batch_lis.record_type == 'auth' ) %]Authority[% ELSE %]Bibliographic[% END %]</td>
     <td>
