@@ -112,13 +112,13 @@ sub build_query {
     # See _convert_facets in Search.pm for how these get turned into
     # things that Koha can use.
     $res->{aggregations} = {
-        author   => { terms => { field => "author__facet" } },
-        subject  => { terms => { field => "subject__facet" } },
-        itype    => { terms => { field => "itype__facet" } },
+        Author => { terms => { field => "Author__facet" } },
+        Subject => { terms => { field => "Subject__facet" } },
+        itype => { terms => { field => "itype__facet" } },
         location => { terms => { field => "location__facet" } },
         'su-geo' => { terms => { field => "su-geo__facet" } },
-        se       => { terms => { field => "se__facet" } },
-        ccode    => { terms => { field => "ccode__facet" } },
+        'Title-series' => { terms => { field => "Title-series__facet" } },
+        ccode => { terms => { field => "ccode__facet" } },
     };
 
     my $display_library_facets = C4::Context->preference('DisplayLibraryFacets');
@@ -477,16 +477,20 @@ sub _convert_sort_fields {
 
     # Turn the sorting into something we care about.
     my %sort_field_convert = (
-        acqdate     => 'acqdate',
-        author      => 'author',
-        call_number => 'callnum',
+        acqdate     => 'Date-of-acquisition',
+        author      => 'Author',
+        call_number => 'Local-classification',
         popularity  => 'issues',
         relevance   => undef,       # default
-        title       => 'title',
-        pubdate     => 'pubdate',
+        title       => 'Title',
+        pubdate     => 'Date-of-publication',
     );
-    my %sort_order_convert =
-      ( qw( dsc desc ), qw( asc asc ), qw( az asc ), qw( za desc ) );
+    my %sort_order_convert = (
+        dsc => 'desc',
+        asc => 'asc',
+        az => 'asc',
+        za => 'desc',
+    );
 
     # Convert the fields and orders, drop anything we don't know about.
     grep { $_->{field} } map {
@@ -513,20 +517,97 @@ types.
 =cut
 
 our %index_field_convert = (
-    'kw'      => '_all',
-    'ti'      => 'title',
-    'au'      => 'author',
-    'su'      => 'subject',
-    'nb'      => 'isbn',
-    'se'      => 'title-series',
-    'callnum' => 'callnum',
-    'itype'   => 'itype',
-    'ln'      => 'ln',
-    'branch'  => 'homebranch',
-    'fic'     => 'lf',
-    'mus'     => 'rtype',
-    'aud'     => 'ta',
-    'hi'      => 'Host-Item-Number',
+    'kw' => '_all',
+    'ab' => 'Abstract',
+    'au' => 'Author',
+    'lcn' => 'Local-classification',
+    'callnum' => 'Local-classification',
+    'ln' => 'language',
+    'Record-type' => 'rtype',
+    'mc-rtype' => 'rtype',
+    'mus' => 'rtype',
+    'ctype' => 'Content-type',
+    'lc-card' => 'LC-card-number',
+    'sn' => 'Local-number',
+    'yr' => 'Date-of-publication',
+    'pubdate' => 'Date-of-publication',
+    'acqdate' => 'Date-of-acquisition',
+    'Date-time-last-modified' => 'Date/time-last-modified',
+    'dtlm' => 'Date/time-last-modified',
+    'diss' => 'Dissertation-information',
+    'ean' => 'EAN',
+    'nb' => 'ISBN',
+    'isbn' => 'ISBN',
+    'ns' => 'ISSN',
+    'issn' => 'ISSN',
+    'Music-number' => 'Identifier-publisher-for-music',
+    'Number-music-publisher' => 'Identifier-publisher-for-music',
+    'music' => 'Identifier-publisher-for-music',
+    'ident' => 'Identifier-standard',
+    'name' => 'Name',
+    'cpn' => 'Corporate-name',
+    'cfn' => 'Conference-name',
+    'pl' => 'Place-publication',
+    'pn' => 'Personal-name',
+    'pb' => 'Publisher',
+    'pv' => 'Provider',
+    'nt' => 'Note',
+    'notes' => 'Note',
+    'rcn' => 'Record-control-number',
+    'su' => 'Subject',
+    'su-to' => 'Subject',
+    #'su-geo' => 'Subject',
+    'su-ut' => 'Subject',
+    'ti' => 'Title',
+    'se' => 'Title-series',
+    'ut' => 'Title-uniform',
+    'an' => 'Authority-Number',
+    'Koha-Auth-Number' => 'Authority-Number',
+    'at' => 'authtype',
+    'he' => 'Heading',
+    'rank' => 'relevance',
+    'phr' => 'st-phrase',
+    'wrdl' => 'st-word-list',
+    'rt' => 'right-Truncation',
+    'rtrn' => 'right-Truncation',
+    'ltrn' => 'left-Truncation',
+    'rltrn' => 'left-and-right',
+    'mc-itemtype' => 'itemtype',
+    'mc-ccode' => 'ccode',
+    'branch' => 'homebranch',
+    'mc-loc' => 'location',
+    'stocknumber' => 'Number-local-acquisition',
+    'inv' => 'Number-local-acquisition',
+    'bc' => 'barcode',
+    'mc-itype' => 'itype',
+    'aub' => 'Author-personal-bibliography',
+    'auo' => 'Author-in-order',
+    'ff8-22' => 'ta',
+    'aud' => 'ta',
+    'audience' => 'ta',
+    'Frequency-code' => 'ff8-18',
+    'Illustration-code' => 'ff8-18-21',
+    'Regularity-code' => 'ff8-19',
+    'Type-Of-Serial' => 'ff8-21',
+    'format' => 'ff8-23',
+    'Conference-code' => 'ff8-29',
+    'Festschrift-indicator' => 'ff8-30',
+    'Index-indicator' => 'ff8-31',
+    'fiction' => 'lf',
+    'fic' => 'lf',
+    'Literature-Code' => 'lf',
+    'biography' => 'bio',
+    'ff8-34' => 'bio',
+    'Biography-Code' => 'bio',
+    'l-format' => 'ff7-01-02',
+    'lex' => 'lexile-number',
+    'video-mt' => 'Video-mt',
+    'Graphic-type' => 'Graphics-type',
+    'Graphic-support' => 'Graphics-support',
+    'item' => 'Item',
+    'hi' => 'Host-Item-Number',
+    'itu' => 'Index-term-uncontrolled',
+    'itg' => 'Index-term-genre',
 );
 
 sub _convert_index_fields {
@@ -547,7 +628,7 @@ sub _convert_index_fields {
             $f =~ s/^mc-//;
         }
         my $r = {
-            field => $index_field_convert{$f},
+            field => exists $index_field_convert{$f} ? $index_field_convert{$f} : $f,
             type  => $index_type_convert{ $t // '__default' }
         };
         $r->{field} = ($mc . $r->{field}) if $mc && $r->{field};
